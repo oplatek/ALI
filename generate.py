@@ -3,30 +3,50 @@ import matplotlib
 matplotlib.use('Agg') 
 import argparse
 
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
 import numpy
 import theano
 from blocks.serialization import load
+import matplotlib
 from matplotlib import cm, pyplot
 from mpl_toolkits.axes_grid1 import ImageGrid
 from theano import tensor
 
+from customfuel import Cifar10Dataset
 from ali import streams
-
 
 def main(main_loop, data_stream, nrows, ncols, save_path, sigma):
     ali, = main_loop.model.top_bricks
     x = tensor.tensor4('features')
+    f = theano.function([x], ali.reconstruct(x))
+
+    dataset = Cifar10Dataset('/home/belohlavek/data/cifar10', is_train=False)
+    augmented = {'data': [], 'labels': []}
+
+    for eid, batch in enumerate(dataset.get_stream(32).get_epoch_iterator(as_dict=True)):
+        print batch.keys()
+        recs = f(batch['features'])
+        for bid, (img, label) in enumerate(zip(recs, batch['label'])):
+            matplotlib.image.imsave('/home/belohlavek/tmp/img_{}_{}_{}.jpg'.format(eid, bid, label), img.transpose(1, 2, 0).squeeze())
+            augmented['data'].append((img.reshape((-1,)) * 255.0).astype('int32'))
+            augmented['labels'].append(label)
+
+    augmented['data'] = numpy.array(augmented['data'])
+    pickle.dump(augmented, open('/home/belohlavek/fooo.dump', 'wb'))
+    return
+
     orig_examples, = next(data_stream.get_epoch_iterator())
     print('orig_examples', orig_examples.shape)
-
-    print(orig_examples[0])
 
     examples = numpy.array([orig_examples[0] + sigma * numpy.random.randn(*orig_examples[0].shape) for _ in orig_examples]).astype('float32')
     print('examples', examples.shape)
 
     reconstructions = theano.function([x], ali.reconstruct(x))(examples)
     print('rec', reconstructions.shape)
-    print(reconstructions[0])
 
     figure = pyplot.figure()
     grid = ImageGrid(figure, 111, (nrows, ncols), axes_pad=0.1)

@@ -1,10 +1,10 @@
 [global]
-device = gpu
+device = gpu0
 floatX = float32
 mode = FAST_RUN
 
-[lib]
-cnmem = 0.8
+#[lib]
+#cnmem = 0.8
 
 [dnn.conv]
 algo_fwd = time_once

@@ -5,6 +5,7 @@ import argparse
 
 import theano
 from blocks.serialization import load
+import matplotlib
 from matplotlib import cm, pyplot
 from mpl_toolkits.axes_grid1 import ImageGrid
 
@@ -25,6 +26,8 @@ def main(main_loop, nrows, ncols, save_path=None):
         axis.set_yticklabels(['' for _ in range(sample.shape[1])])
         axis.set_xticklabels(['' for _ in range(sample.shape[2])])
         axis.axis('off')
+
+    matplotlib.image.imsave('/home/belohlavek/tmp/name.png', sample.transpose(1, 2, 0).squeeze())
 
     if save_path is None:
         pyplot.show()

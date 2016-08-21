@@ -40,4 +40,5 @@ def ali_algorithm(discriminator_loss, discriminator_parameters,
         cost=generator_loss + discriminator_loss,
         gradients=gradients,
         parameters=discriminator_parameters + generator_parameters,
-        step_rule=step_rule)
+        step_rule=step_rule,
+        on_unused_sources='warn')
